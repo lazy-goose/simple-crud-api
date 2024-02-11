@@ -31,3 +31,5 @@ export type User = {
     /** @description hobbies — user's hobbies (array of strings or empty array, required)*/
     hobbies: string[]
 }
+
+export type UserUpdate = Pick<User, 'id'> & Partial<User>

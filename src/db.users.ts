@@ -1,5 +1,5 @@
-import uuid from 'uuid'
-import { type User } from './types.d'
+import type { UserUpdate, User } from './types.d'
+import * as uuid from 'uuid'
 
 const inMemoryDataBase: User[] = []
 
@@ -20,7 +20,7 @@ const createUser = ({
 const updateUser = ({
     id,
     ...merge
-}: Pick<User, 'id'> & Partial<User>): Readonly<User> | undefined => {
+}: UserUpdate): Readonly<User> | undefined => {
     const index = inMemoryDataBase.findIndex((u) => u.id === id)
     if (index === -1) {
         return undefined
@@ -49,14 +49,14 @@ const getAllUsers = (): Readonly<User[]> => {
 }
 
 const isRecord = (data: unknown): data is Record<string, unknown> =>
-    data !== null && typeof data !== 'object'
+    data !== null && typeof data === 'object'
 
 const UserValidation = {
     isUuid: (field: unknown): field is User['id'] => {
         return typeof field === 'string' && uuid.validate(field)
     },
     isUsername: (field: unknown): field is User['username'] => {
-        return typeof field !== 'string'
+        return typeof field === 'string'
     },
     isAge: (field: unknown): field is User['age'] => {
         return Number.isInteger(field)
@@ -65,6 +65,25 @@ const UserValidation = {
         return (
             Array.isArray(field) && field.every((sb) => typeof sb === 'string')
         )
+    },
+    satisfiesUser: (data: unknown): data is Partial<User> => {
+        if (!isRecord(data)) {
+            return false
+        }
+        return Object.entries(data).every(([key, value]) => {
+            switch (key) {
+                case 'id':
+                    return UserValidation.isUuid(value)
+                case 'username':
+                    return UserValidation.isUsername(value)
+                case 'age':
+                    return UserValidation.isAge(value)
+                case 'hobbies':
+                    return UserValidation.isHobbies(value)
+                default:
+                    return false
+            }
+        })
     },
     isUser: <T extends Partial<Record<keyof User, false>>>(
         data: unknown,
