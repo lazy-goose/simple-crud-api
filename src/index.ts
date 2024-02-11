@@ -1,3 +1,2 @@
-import path from 'path'
-
-console.log(path.resolve())
+import 'dotenv/config'
+import './server'
