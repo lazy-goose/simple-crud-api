@@ -8,7 +8,7 @@
   },
   "scripts": {
     "start:dev": "ts-node-dev --respawn src/index.ts",
-    "start:prod": "ts-node src/index.ts"
+    "start:prod": "node clean.js && ts-node src/index.ts"
   },
   "devDependencies": {
     "@tsconfig/node20": "^20.1.2",
