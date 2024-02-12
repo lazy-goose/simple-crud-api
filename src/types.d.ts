@@ -20,3 +20,14 @@ export type RouteDefinition = {
     match: string | RegExp
     route: RouteHandler
 }
+
+export type User = {
+    /** @description id — unique identifier (string, uuid) generated on server side */
+    id: string
+    /** @description username — user's name (string, required) */
+    username: string
+    /** @description age — user's age (number, required) */
+    age: number
+    /** @description hobbies — user's hobbies (array of strings or empty array, required)*/
+    hobbies: string[]
+}
