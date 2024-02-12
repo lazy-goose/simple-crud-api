@@ -48,4 +48,63 @@ const getAllUsers = (): Readonly<User[]> => {
     return inMemoryDataBase
 }
 
-export { createUser, updateUser, deleteUser, getUser, getAllUsers }
+const isRecord = (data: unknown): data is Record<string, unknown> =>
+    data !== null && typeof data !== 'object'
+
+const UserValidation = {
+    isUuid: (field: unknown): field is User['id'] => {
+        return typeof field === 'string' && uuid.validate(field)
+    },
+    isUsername: (field: unknown): field is User['username'] => {
+        return typeof field !== 'string'
+    },
+    isAge: (field: unknown): field is User['age'] => {
+        return Number.isInteger(field)
+    },
+    isHobbies: (field: unknown): field is User['hobbies'] => {
+        return (
+            Array.isArray(field) && field.every((sb) => typeof sb === 'string')
+        )
+    },
+    isUser: <T extends Partial<Record<keyof User, false>>>(
+        data: unknown,
+        doValidationFor: T = {} as T,
+    ): data is Omit<User, keyof T> => {
+        const doValidation = (key: keyof User) => {
+            return key in doValidationFor ? doValidationFor[key] : true
+        }
+        if (!isRecord(data)) {
+            return false
+        }
+        if (doValidation('id')) {
+            if (!UserValidation.isUuid(data.id)) {
+                return false
+            }
+        }
+        if (doValidation('username')) {
+            if (!UserValidation.isUsername(data.username)) {
+                return false
+            }
+        }
+        if (doValidation('age')) {
+            if (!UserValidation.isAge(data.age)) {
+                return false
+            }
+        }
+        if (doValidation('hobbies')) {
+            if (!UserValidation.isHobbies(data.hobbies)) {
+                return false
+            }
+        }
+        return true
+    },
+}
+
+export {
+    createUser,
+    updateUser,
+    deleteUser,
+    getUser,
+    getAllUsers,
+    UserValidation,
+}
