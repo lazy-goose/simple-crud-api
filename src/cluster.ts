@@ -3,25 +3,33 @@ import 'dotenv/config'
 import createServer from './createServer'
 
 import http from 'http'
-import cluster from 'cluster'
+import cluster, { Worker } from 'cluster'
 import process from 'process'
 import { availableParallelism } from 'os'
 import { URL } from 'url'
+import { BASE_URL, PORT as ENV_PORT, SignalType } from './constants'
 
 const numCPUs = availableParallelism()
 
-const ENV_PORT = Number(process.env.PORT)
-const BASE_URL = 'http://127.0.0.1'
-
-// Force round-robin in Windows
 cluster.schedulingPolicy = cluster.SCHED_RR
 
 if (cluster.isPrimary) {
+    const workers: Worker[] = []
     for (let i = 1; i <= numCPUs; i++) {
-        cluster.fork({ WORKER_INDEX: i })
+        workers.push(cluster.fork({ WORKER_INDEX: i }))
     }
     let round = 1
-    http.createServer((req, res) => {
+    workers.forEach((worker) => {
+        worker.on('message', (event) => {
+            if (event.type === SignalType.Sync) {
+                // Broadcast to each worker
+                workers.forEach((w) =>
+                    w.send({ type: SignalType.Update, data: event.data }),
+                )
+            }
+        })
+    })
+    http.createServer(async (req, res) => {
         const redirectTo = new URL(BASE_URL)
         redirectTo.pathname = req.url || ''
         redirectTo.port = String(ENV_PORT + (round++ % numCPUs))

@@ -37,3 +37,8 @@ export type User = {
 }
 
 export type UserUpdate = Pick<User, 'id'> & Partial<User>
+
+export type UserSyncSignal = {
+    type: 'sync'
+    data: User[]
+}
