@@ -4,12 +4,14 @@ import createServer from './createServer'
 
 import http from 'http'
 import cluster, { Worker } from 'cluster'
-import process from 'process'
+import process, { argv } from 'process'
 import { availableParallelism } from 'os'
 import { URL } from 'url'
 import { BASE_URL, PORT as ENV_PORT, SignalType } from './constants'
 
 const numCPUs = availableParallelism()
+
+const PORT = Number(argv[2]) || ENV_PORT
 
 cluster.schedulingPolicy = cluster.SCHED_RR
 
@@ -32,12 +34,12 @@ if (cluster.isPrimary) {
     http.createServer(async (req, res) => {
         const redirectTo = new URL(BASE_URL)
         redirectTo.pathname = req.url || ''
-        redirectTo.port = String(ENV_PORT + (round++ % numCPUs))
+        redirectTo.port = String(PORT + (round++ % numCPUs))
         res.writeHead(307, { Location: redirectTo.href })
         res.end()
-    }).listen(ENV_PORT)
+    }).listen(PORT)
 } else {
-    const serverPort = ENV_PORT + Number(process.env.WORKER_INDEX)
+    const serverPort = PORT + Number(process.env.WORKER_INDEX)
     createServer()
         .on('request', (req) => {
             console.log(

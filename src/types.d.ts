@@ -42,3 +42,8 @@ export type UserSyncSignal = {
     type: 'sync'
     data: User[]
 }
+
+declare global {
+    // eslint-disable-next-line no-var
+    var server: ReturnType<typeof createServer>
+}

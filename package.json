@@ -11,7 +11,10 @@
     "start:prod": "npm run lint && node clean.js && ts-node src/index.ts",
     "start:multi": "npm run lint && node clean.js && ts-node src/cluster.ts",
     "lint": "eslint src --max-warnings 0 --fix",
-    "format": "prettier src --write"
+    "format": "prettier src --write",
+    "test:1": "VITE_CJS_IGNORE_WARNING=true vitest run scenario-1",
+    "test:2": "VITE_CJS_IGNORE_WARNING=true vitest run scenario-2",
+    "test:3": "VITE_CJS_IGNORE_WARNING=true vitest run scenario-3"
   },
   "devDependencies": {
     "@tsconfig/node20": "^20.1.2",
