@@ -1,5 +1,5 @@
 import { RouteHandler } from '../types.d'
 
-const defineRoute = (annotate: RouteHandler) => annotate
+const defineRoute = <T extends RouteHandler>(annotate: T) => annotate
 
 export default defineRoute

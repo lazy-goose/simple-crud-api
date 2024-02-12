@@ -1,10 +1,15 @@
 import { RequestListener } from 'http'
-import { RouteDefinition } from '../types'
+import { RouteDefinition, RouteErrorHandler } from '../types.d'
 
 const createRouter = (
     routes: RouteDefinition[],
-    fallback?: RequestListener,
+    fallback: {
+        unhandledMatchRoute?: RequestListener
+        errorRoute?: RouteErrorHandler
+    } = {},
 ): RequestListener => {
+    const { unhandledMatchRoute, errorRoute } = fallback
+
     const parseVariable = <T>(
         str: T,
     ): {
@@ -32,72 +37,85 @@ const createRouter = (
             isOpt: false,
         }
     }
+
     return (req, res) => {
-        let vars: Record<string, string> = {}
-        const matchedRoute = routes.find(({ method, match }) => {
-            if (!req.url) {
-                return false
-            }
-            // Method check
-            if (typeof method === 'string' && method !== req.method) {
-                return false
-            }
-            if (Array.isArray(method) && !method.some((m) => m == req.method)) {
-                return false
-            }
-            // Match check
-            if (match instanceof RegExp) {
-                return req.url.match(match)
-            }
-            if (typeof match === 'string') {
-                const split = (str: string) => str.split('/').filter(Boolean)
+        try {
+            let vars: Record<string, string> = {}
+            const matchedRoute = routes.find(({ method, match }) => {
+                if (!req.url) {
+                    return false
+                }
+                // Method check
+                if (typeof method === 'string' && method !== req.method) {
+                    return false
+                }
+                if (
+                    Array.isArray(method) &&
+                    !method.some((m) => m == req.method)
+                ) {
+                    return false
+                }
+                // Match check
+                if (match instanceof RegExp) {
+                    return req.url.match(match)
+                }
+                if (typeof match === 'string') {
+                    const split = (str: string) =>
+                        str.split('/').filter(Boolean)
 
-                const matchPaths = split(match)
-                const reqPaths = split(req.url)
+                    const matchPaths = split(match)
+                    const reqPaths = split(req.url)
 
-                const pool = [...reqPaths].reverse()
+                    const pool = [...reqPaths].reverse()
 
-                let optLength = matchPaths
-                    .map(parseVariable)
-                    .reduce((sum, v) => sum + +v.isOpt, 0)
+                    let optLength = matchPaths
+                        .map(parseVariable)
+                        .reduce((sum, v) => sum + +v.isOpt, 0)
 
-                for (let i = 0; i < matchPaths.length; i++) {
-                    const { value, isVar, isOpt } = parseVariable(matchPaths[i])
-                    if (isVar) {
-                        if (isOpt) {
-                            const hasToReplace = pool.length - optLength
-                            if (hasToReplace > 0) {
-                                vars[value] = pool.pop() as string
-                                optLength--
+                    for (let i = 0; i < matchPaths.length; i++) {
+                        const { value, isVar, isOpt } = parseVariable(
+                            matchPaths[i],
+                        )
+                        if (isVar) {
+                            if (isOpt) {
+                                const hasToReplace = pool.length - optLength
+                                if (hasToReplace > 0) {
+                                    vars[value] = pool.pop() as string
+                                    optLength--
+                                }
+                                continue
                             }
+                            vars[value] = pool.pop() as string
                             continue
                         }
-                        vars[value] = pool.pop() as string
-                        continue
+                        if (matchPaths[i] === reqPaths[i]) {
+                            pool.pop()
+                            continue
+                        }
+                        return false
                     }
-                    if (matchPaths[i] !== reqPaths[i]) {
-                        pool.pop()
-                        continue
+
+                    if (pool.length !== optLength) {
+                        vars = {}
+                        return false
                     }
-                    return false
-                }
 
-                if (pool.length === optLength) {
-                    vars = {}
-                    return false
+                    return true
                 }
-
-                return true
+                return false
+            })
+            if (!matchedRoute) {
+                if (!unhandledMatchRoute) {
+                    throw new Error('Unhandled route')
+                }
+                return unhandledMatchRoute(req, res)
             }
-            return false
-        })
-        if (!matchedRoute) {
-            if (!fallback) {
-                throw new Error('Unhandled route')
+            return matchedRoute.route(req, res, vars)
+        } catch (e) {
+            if (errorRoute) {
+                errorRoute(req, res, e)
             }
-            return fallback(req, res)
         }
-        return matchedRoute.route(req, res, vars)
     }
 }
 

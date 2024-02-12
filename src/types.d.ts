@@ -15,6 +15,10 @@ export type RouteHandler = (
     ...args: [...Parameters<RequestListener>, vars: Record<string, string>]
 ) => void
 
+export type RouteErrorHandler = (
+    ...args: [...Parameters<RequestListener>, error: unknown]
+) => void
+
 export type RouteDefinition = {
     method: HTTPMethod | HTTPMethod[]
     match: string | RegExp
