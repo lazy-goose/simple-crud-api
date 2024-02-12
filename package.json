@@ -9,6 +9,7 @@
   "scripts": {
     "start:dev": "ts-node-dev --respawn src/index.ts",
     "start:prod": "npm run lint && node clean.js && ts-node src/index.ts",
+    "start:multi": "npm run lint && node clean.js && ts-node src/cluster.ts",
     "lint": "eslint src --max-warnings 0 --fix",
     "format": "prettier src --write"
   },

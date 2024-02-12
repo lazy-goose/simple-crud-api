@@ -43,8 +43,4 @@ const router = createRouter(
     },
 )
 
-const PORT = process.env.PORT
-
-createServer(router).listen(PORT, () => {
-    console.log(`Server successfully started on port: ${PORT}`)
-})
+export default () => createServer(router)
