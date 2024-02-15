@@ -1,6 +1,7 @@
 node_modules
-dist
 *.log
+dist/*
+!dist/.gitkeep
 npm
 npm-debug.log*
 coverage
