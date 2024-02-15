@@ -5,7 +5,7 @@ dist/*
 npm
 npm-debug.log*
 coverage
-.env
+# .env
 .env.*
 *.tsbuildinfo
 .eslintcache
