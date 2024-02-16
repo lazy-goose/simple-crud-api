@@ -1,12 +1,37 @@
 {
   "name": "simple-crud-api",
+  "author": "lazy-goose",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+  "private": true,
+  "engines": {
+    "node": ">=20.11.0"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC"
+  "scripts": {
+    "start:dev": "ts-node-dev --respawn src/index.ts",
+    "start:prod": "npm run lint && node clean.js && ts-node src/index.ts",
+    "start:multi": "npm run lint && node clean.js && ts-node src/cluster.ts",
+    "lint": "eslint src --max-warnings 0 --fix",
+    "format": "prettier src --write",
+    "test:1": "VITE_CJS_IGNORE_WARNING=true vitest run scenario-1",
+    "test:2": "VITE_CJS_IGNORE_WARNING=true vitest run scenario-2",
+    "test:3": "VITE_CJS_IGNORE_WARNING=true vitest run scenario-3"
+  },
+  "devDependencies": {
+    "@tsconfig/node20": "^20.1.2",
+    "@types/node": "^20.11.17",
+    "@types/uuid": "^9.0.8",
+    "@typescript-eslint/eslint-plugin": "^6.21.0",
+    "@typescript-eslint/parser": "^6.21.0",
+    "eslint": "^8.56.0",
+    "eslint-config-prettier": "^9.1.0",
+    "prettier": "^3.2.5",
+    "ts-node": "^10.9.2",
+    "ts-node-dev": "^2.0.0",
+    "typescript": "^5.3.3",
+    "vitest": "^1.2.2"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.2",
+    "uuid": "^9.0.1"
+  }
 }

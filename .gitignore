@@ -1,0 +1,12 @@
+node_modules
+*.log
+dist/*
+!dist/.gitkeep
+npm
+npm-debug.log*
+coverage
+# .env
+.env.*
+*.tsbuildinfo
+.eslintcache
+.cache
